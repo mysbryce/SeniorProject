@@ -1,0 +1,68 @@
+import { speakWithAvatar } from './audio.js'
+import { els } from './dom.js'
+import { state } from './state.js'
+import { setIdle, setStage, setStatus, setSubtitle } from './ui.js'
+
+export async function runVoiceTurn() {
+  if (!canStartVoiceTurn()) {
+    return
+  }
+
+  startVoiceTurn()
+
+  try {
+    const transcript = await listenForTranscript()
+    if (!transcript) {
+      setSubtitle('โรสยังได้ยินไม่ชัดเลยนะ')
+      return
+    }
+
+    const reply = await askAi(transcript)
+    await speakReply(reply)
+  } catch (error) {
+    setStage('idle')
+    setStatus('มีปัญหาเรื่องเสียง')
+    setSubtitle(String(error))
+  } finally {
+    finishVoiceTurn()
+  }
+}
+
+function canStartVoiceTurn() {
+  return !state.busy && Boolean(state.activeRoomId)
+}
+
+function startVoiceTurn() {
+  state.busy = true
+  els.voiceButton.disabled = true
+  setStage('listening')
+  setStatus('กำลังฟัง...')
+  setSubtitle('พูดได้เลยนะ')
+}
+
+function finishVoiceTurn() {
+  state.busy = false
+  setIdle()
+}
+
+async function listenForTranscript() {
+  const transcript = (await window.pywebview.api.listen_once()).trim()
+  if (transcript) {
+    setStage('thinking')
+    setStatus('กำลังคิด...')
+    setSubtitle(transcript)
+  }
+  return transcript
+}
+
+async function askAi(transcript) {
+  return window.pywebview.api.send_message(state.activeRoomId, transcript)
+}
+
+async function speakReply(reply) {
+  const speech = await window.pywebview.api.synthesize_speech(reply)
+  setStage('speaking')
+  setStatus('กำลังพูด...')
+  setSubtitle(reply)
+  await speakWithAvatar(speech, reply)
+}
