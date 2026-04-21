@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 import webview
@@ -13,8 +14,14 @@ def project_root() -> Path:
     return Path(__file__).resolve().parents[2]
 
 
+def asset_root() -> Path:
+    if getattr(sys, "frozen", False):
+        return Path(getattr(sys, "_MEIPASS"))
+    return project_root()
+
+
 def main() -> None:
-    index_file = project_root() / "web" / "index.html"
+    index_file = asset_root() / "web" / "index.html"
 
     # AI generated comment: PyWebView เปิดหน้าเว็บ local แล้วผูก Api ให้ JavaScript เรียก Python ได้
     webview.create_window(
