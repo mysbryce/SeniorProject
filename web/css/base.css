@@ -1,3 +1,4 @@
+/* AI generated comment: ตั้ง token สีหลักไว้ให้ธีมขาวดำคุมง่ายทั้งหน้า */
 :root {
   color-scheme: dark;
   --bg: #000;
@@ -20,6 +21,7 @@ body {
 }
 
 body {
+  /* AI generated comment: ล็อกหน้าไม่ให้ scroll เพราะ layout นี้เป็น voice console แบบเต็มจอ */
   margin: 0;
   overflow: hidden;
   background: var(--bg);

@@ -42,6 +42,7 @@ class ActionCommand:
 
 class Api:
     def __init__(self) -> None:
+        # AI generated comment: คลาสนี้คือสะพานหลักระหว่างหน้าเว็บกับระบบเสียง/AI ฝั่ง Python
         load_dotenv()
         self.client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
         self.generation_config = types.GenerateContentConfig(
@@ -74,6 +75,7 @@ class Api:
         return self.rooms.clear_room(room_id)
 
     def listen_once(self) -> str:
+        # AI generated comment: ฟังเสียงหนึ่งรอบแล้วแปลงเป็นข้อความไทยด้วย Google speech recognition
         with sr.Microphone() as source:
             self.recognizer.adjust_for_ambient_noise(source, duration=0.5)
             audio = self.recognizer.listen(source, timeout=8, phrase_time_limit=18)
@@ -117,6 +119,7 @@ class Api:
                     pass
 
     def synthesize_speech(self, text: str) -> dict[str, str]:
+        # AI generated comment: ส่งเสียงกลับเป็น base64 เพื่อให้เว็บเล่นเสียงและขยับปาก avatar พร้อมกัน
         speech = text.strip()
         if not speech:
             raise ValueError("Speech text cannot be empty")
@@ -137,6 +140,7 @@ class Api:
         }
 
     def send_message(self, room_id: str, user_message: str) -> str:
+        # AI generated comment: flow หลักคือบันทึกเสียงผู้ใช้ ส่งเข้า AI แล้วจัดการ action ถ้ามี
         text = user_message.strip()
         if not text:
             raise ValueError("Message cannot be empty")
@@ -191,6 +195,7 @@ class Api:
         return ActionCommand(kind=kind.strip().lower(), value=value.strip())
 
     def _open_url(self, url: str) -> None:
+        # AI generated comment: Windows เปิดซ้ำด้วย os.startfile ได้นิ่งกว่า webbrowser ในบางเครื่อง
         if os.name == "nt":
             os.startfile(url)
             return
@@ -205,6 +210,7 @@ class Api:
         self._mixer_ready = True
 
     def _do_action(self, action: ActionCommand) -> str:
+        # AI generated comment: ข้อความที่ return ตรงนี้จะถูกเอาไปพูดเป็นภาษาไทยแทน action tag
         if not action.value:
             return "โรสยังไม่เห็นสิ่งที่จะให้เปิดเลยนะ"
 

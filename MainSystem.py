@@ -9,6 +9,7 @@ from pathlib import Path
 from urllib.parse import quote_plus
 import speech_recognition as sr
 
+# AI generated comment: ให้สคริปต์เก่ายังเรียก config กลางจาก src ได้เหมือนแอปใหม่
 sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
 from rose_chat.config import (
@@ -54,7 +55,7 @@ memory = deque(maxlen=6)
 
 pygame.mixer.init()
 
-# Elevenlabs
+# AI generated comment: เตรียมเสียงพูดของ Rose จาก ElevenLabs โดยให้เปลี่ยน voice ผ่าน .env ได้
 tts_client = ElevenLabs(api_key=os.getenv("ELEVENLABS_API_KEY"))
 VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID", DEFAULT_ELEVENLABS_VOICE_ID)
 
@@ -66,7 +67,7 @@ async def speak(text):
     temp = f"tts_{uuid.uuid4().hex}.mp3"
 
     try:
-        # ElevenLabs Python SDK: convert() returns an iterator of audio bytes
+        # AI generated comment: ElevenLabs ส่งเสียงกลับมาเป็นชิ้น ๆ เลยต้องเขียนรวมเป็นไฟล์ก่อนเล่น
         audio_stream = tts_client.text_to_speech.convert(
             text=text,
             voice_id=VOICE_ID,
@@ -179,9 +180,7 @@ def ask(text):
 
     memory.append((text, reply))
 
-    # -----------------------------
-    # Handle Action command
-    # -----------------------------
+    # AI generated comment: ถ้าโมเดลตอบเป็น action tag ให้ทำงานนั้นแทนการพูดข้อความดิบ
     action = parse_action(reply)
     if action:
         return do_action(action)
@@ -214,5 +213,5 @@ if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        # Gracefully handle Ctrl+C without showing a long traceback
+        # AI generated comment: กด Ctrl+C แล้วปิดแบบนุ่ม ๆ ไม่ต้องโชว์ traceback ยาว ๆ
         print("\nกำลังปิดโปรแกรมนะ แล้วเจอกันใหม่นะะะ 😊")

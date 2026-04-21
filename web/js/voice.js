@@ -4,6 +4,7 @@ import { state } from './state.js'
 import { setIdle, setStage, setStatus, setSubtitle } from './ui.js'
 
 export async function runVoiceTurn() {
+  // AI generated comment: หนึ่ง voice turn คือฟังเสียง ส่งให้ AI แล้วพูดคำตอบกลับ
   if (!canStartVoiceTurn()) {
     return
   }
@@ -46,6 +47,7 @@ function finishVoiceTurn() {
 }
 
 async function listenForTranscript() {
+  // AI generated comment: transcript ที่ได้จะแสดงเป็น subtitle ให้รู้ว่า Rose ได้ยินอะไร
   const transcript = (await window.pywebview.api.listen_once()).trim()
   if (transcript) {
     setStage('thinking')
@@ -60,6 +62,7 @@ async function askAi(transcript) {
 }
 
 async function speakReply(reply) {
+  // AI generated comment: ให้ backend สร้างเสียงก่อน แล้วค่อยเล่นพร้อม avatar ในหน้าเว็บ
   const speech = await window.pywebview.api.synthesize_speech(reply)
   setStage('speaking')
   setStatus('กำลังพูด...')

@@ -3,6 +3,7 @@ import { createMouthAnimation } from './mouth-animation.js'
 import { state } from './state.js'
 
 export async function speakWithAvatar(speech, text) {
+  // AI generated comment: เสียงจาก Python มาเป็น base64 เลยต้อง decode ก่อนส่งให้ avatar พูด
   const audioBuffer = await decodeAudio(speech.base64, speech.mime_type)
 
   if (!state.avatarReady || !state.head) {
@@ -14,6 +15,7 @@ export async function speakWithAvatar(speech, text) {
 }
 
 async function playTalkingHeadAudio(audioBuffer, text) {
+  // AI generated comment: สร้าง animation ปากเองให้ขยับตามความยาวเสียงแบบง่าย ๆ
   const speechAnim = createMouthAnimation(audioBuffer.duration, text)
   const result = state.head.speakAudio(
     {
@@ -52,6 +54,7 @@ function getAudioContext() {
 }
 
 async function playFallbackAudio(audioBuffer) {
+  // AI generated comment: fallback face ใช้ Web Audio ปกติและเปิด class talking เพื่อขยับปาก
   const context = getAudioContext()
   await context.resume()
 

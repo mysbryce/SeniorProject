@@ -9,6 +9,7 @@ MessageRole = Literal["user", "assistant"]
 
 
 def _now_iso() -> str:
+    # AI generated comment: ใช้เวลา UTC เพื่อให้เรียงห้องและข้อความได้เสถียร
     return datetime.now(timezone.utc).isoformat()
 
 
@@ -52,6 +53,7 @@ class Room:
 
 class RoomManager:
     def __init__(self) -> None:
+        # AI generated comment: เก็บห้องไว้ใน memory ก่อน ยังไม่ผูก database เพื่อให้แอปเบาและเรียบง่าย
         self._rooms: dict[str, Room] = {}
         self._create_default_room()
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 
+# AI generated comment: รวมค่าคงที่ไว้ที่เดียว จะได้ปรับโมเดล หน้าต่าง และเสียงได้ง่าย
 APP_TITLE = "AI Chat"
 WINDOW_WIDTH = 1100
 WINDOW_HEIGHT = 720
@@ -17,11 +18,13 @@ DEFAULT_ELEVENLABS_VOICE_ID = "cgSgspJ2msm6clMCkdW9"
 
 PYGAME_HIDE_SUPPORT_PROMPT = "1"
 
+# AI generated comment: รองรับ action tag ที่มีช่องว่าง เช่น ค้นหา YouTube หลายคำ
 ACTION_PATTERN = re.compile(
     r"<\s*action\s*:\s*(youtube|web|app)\s*:\s*([^>]+?)\s*>",
     re.IGNORECASE,
 )
 
+# AI generated comment: prompt นี้คุมบุคลิก Rose และบังคับ format action ให้ frontend/backend จับได้
 SYSTEM_INSTRUCTION = (
     "Do NOT use emojis."
     "You are Rose, a warm Thai girl friend, speaking Thai naturally like real conversation, not like an AI."

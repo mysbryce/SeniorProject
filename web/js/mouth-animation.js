@@ -1,6 +1,7 @@
 import { MOUTH } from './config.js'
 
 export function createMouthAnimation(durationSeconds, text) {
+  // AI generated comment: animation นี้ตั้งใจให้ดูมีชีวิตพอประมาณ โดยไม่ต้องทำ phoneme จริง
   const durationMs = Math.max(MOUTH.minDurationMs, Math.round(durationSeconds * 1000))
   const frames = Math.ceil(durationMs / MOUTH.frameMs)
   const energy = getMouthEnergy(text)
@@ -35,6 +36,7 @@ function getFrameDuration(index, frames, durationMs) {
 }
 
 function getMouthOpenValue(index, energy) {
+  // AI generated comment: ใช้คลื่นสั้น ๆ ให้ปากเปิดปิดเหมือนจังหวะพูด ไม่ใช่เปิดค้าง
   const wave = Math.abs(Math.sin(index * 1.7))
   const consonantBreak = index % 5 === 0 ? 0.18 : 1
   return Number((0.08 + wave * 0.72 * energy * consonantBreak).toFixed(3))
