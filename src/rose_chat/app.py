@@ -1,0 +1,26 @@
+from __future__ import annotations
+
+from pathlib import Path
+
+import webview
+
+from .api import Api
+from .config import APP_TITLE, WINDOW_HEIGHT, WINDOW_MIN_SIZE, WINDOW_WIDTH
+
+
+def project_root() -> Path:
+    return Path(__file__).resolve().parents[2]
+
+
+def main() -> None:
+    index_file = project_root() / "web" / "index.html"
+
+    webview.create_window(
+        APP_TITLE,
+        index_file.as_uri(),
+        js_api=Api(),
+        width=WINDOW_WIDTH,
+        height=WINDOW_HEIGHT,
+        min_size=WINDOW_MIN_SIZE,
+    )
+    webview.start(debug=False)

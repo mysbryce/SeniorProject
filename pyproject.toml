@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rose-chat"
+version = "0.1.0"
+description = "PyWebView desktop AI chat app with room history and voice chat."
+requires-python = ">=3.12"
+dependencies = [
+  "SpeechRecognition",
+  "pyaudio",
+  "pygame",
+  "google-genai",
+  "python-dotenv",
+  "elevenlabs",
+  "pywebview",
+]
+
+[project.scripts]
+rose-chat = "rose_chat.app:main"
+
+[project.optional-dependencies]
+dev = [
+  "black",
+  "pyinstaller",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  \.venv
+  | __pycache__
+)/
+'''

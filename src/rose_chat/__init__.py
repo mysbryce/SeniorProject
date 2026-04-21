@@ -1,0 +1,1 @@
+"""Rose desktop chat application."""
