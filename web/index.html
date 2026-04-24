@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Chat</title>
+    <!-- AI generated comment: โหลดฟอนต์ไทยก่อน stylesheet เพื่อให้ UI ภาษาไทยดูนุ่มและอ่านง่าย -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/layout.css" />
+    <link rel="stylesheet" href="css/avatar.css" />
+    <link rel="stylesheet" href="css/panel.css" />
+    <!-- AI generated comment: ใช้ importmap ให้หน้า HTML โหลด Three.js และ TalkingHead แบบไม่ต้องมี bundler -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js/+esm",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/",
+          "talkinghead": "https://cdn.jsdelivr.net/gh/met4citizen/TalkingHead@1.7/modules/talkinghead.mjs"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <!-- AI generated comment: หน้านี้ตั้งใจให้เป็น voice chat ล้วน เลยมีแค่ avatar กับปุ่มพูด -->
+    <main class="voice-shell">
+      <section class="avatar-stage" aria-label="Rose voice avatar">
+        <div id="avatar" class="avatar-canvas"></div>
+        <div id="fallback-face" class="fallback-face" aria-hidden="true">
+          <div class="face-eye left"></div>
+          <div class="face-eye right"></div>
+          <div class="face-mouth"></div>
+        </div>
+        <div id="loading" class="loading">Loading avatar...</div>
+      </section>
+
+      <section class="voice-panel">
+        <div class="identity">
+          <div class="mark">R</div>
+          <div>
+            <p class="eyebrow">Voice chat</p>
+            <h1>Rose</h1>
+          </div>
+        </div>
+        <p id="status" class="status">Preparing voice interface...</p>
+        <p id="subtitle" class="subtitle">Press and speak when the avatar is ready.</p>
+        <button id="voice-button" class="talk-button" type="button" disabled>Start speaking</button>
+      </section>
+    </main>
+
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>

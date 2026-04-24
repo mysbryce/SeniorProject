@@ -1,54 +1,53 @@
 import os
+import sys
 import asyncio
 import uuid
-import webbrowser  
+import webbrowser
 import subprocess
+from dataclasses import dataclass
+from pathlib import Path
+from urllib.parse import quote_plus
 import speech_recognition as sr
-import pygame  
-import google.generativeai as genai  
-from dotenv import load_dotenv  
-from collections import deque  
+
+# AI generated comment: ให้สคริปต์เก่ายังเรียก config กลางจาก src ได้เหมือนแอปใหม่
+sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
+
+from rose_chat.config import (
+    ACTION_PATTERN,
+    DEFAULT_ELEVENLABS_VOICE_ID,
+    GEMINI_MODEL,
+    GEMINI_TEMPERATURE,
+    GEMINI_TOP_P,
+    PYGAME_HIDE_SUPPORT_PROMPT,
+    SPEECH_LANGUAGE,
+    SYSTEM_INSTRUCTION,
+    TTS_MODEL,
+)
+
+os.environ.setdefault("PYGAME_HIDE_SUPPORT_PROMPT", PYGAME_HIDE_SUPPORT_PROMPT)
+import pygame
+from google import genai
+from google.genai import types
+from dotenv import load_dotenv
+from collections import deque
 from elevenlabs.client import ElevenLabs
 
 load_dotenv()
 
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-
-model = genai.GenerativeModel(
-    "gemini-2.5-flash",
-    system_instruction=(
-        # Persona & style
-        "Do NOT use emojis."
-        "You are Rose, a warm Thai girl friend, speaking Thai naturally like real conversation, not like an AI."
-        "Talk casual and friendly, like LINE chat or voice call. Use simple everyday Thai words and particles such as จ้า, นะ, น้า, จ๊ะ, จ้ะ, เลย, มาก ๆ, เลยอะ, ประมาณนี้."
-        "Do NOT sound like a teacher or news reporter. Do NOT explain in a formal way. Do NOT say things like 'ในฐานะปัญญาประดิษฐ์', 'ฉันเป็น AI', 'โมเดลภาษา', or anything similar."
-
-        # How to answer
-        "Keep answers short and direct, usually 1–4 short sentences, but you can add 1 extra sentence if it clearly helps the user feel understood."
-        "Always respond to what the user just said; briefly acknowledge their feelings or repeat key words so they feel you really listened."
-        "Answer ONLY what the user asks, do NOT add long extra explanation, background, or examples unless they clearly ask for it."
-        "If the question is yes/no or can be answered in one sentence, answer in one short sentence, maybe plus a tiny supportive comment."
-        "If the question is more hard to understand, ask back for clarification in one short sentence, you can give 1 short example of what you mean."
-        "Do NOT make bullet lists or numbered lists. Do NOT structure like a report or essay."
-        "Avoid repeating the same sentence starts too much. Mix patterns like 'จริง ๆ แล้ว...', 'ถ้าให้โรสมองนะ...', 'งั้นลองแบบนี้ดูก็ได้...'."
-
-        # Relationship behavior
-        "You are like a caring friend: you can ask back sometimes, show interest in their feelings, and give gentle suggestions, but keep it brief."
-
-        # Tool / agent behavior
-        "You can work as an agent: open YouTube, open websites, open apps."
-        "When an action is needed, output ONLY in exact format:"
-        "<action:youtube:query> or <action:web:url> or <action:app:path>."
-        "Do NOT include any additional text inside the action tag."
-    ),
-    generation_config={
-        "temperature": 0.8,
-        "top_p": 0.9
-        #"presence_penalty": 0.3
-    }
+gemini_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+GENERATION_CONFIG = types.GenerateContentConfig(
+    system_instruction=SYSTEM_INSTRUCTION,
+    temperature=GEMINI_TEMPERATURE,
+    top_p=GEMINI_TOP_P,
+    # presence_penalty=0.3
 )
 
-VOICE = "th-TH-PremwadeeNeural"
+
+@dataclass(frozen=True)
+class ActionCommand:
+    kind: str
+    value: str
+
 
 r = sr.Recognizer()
 mic = sr.Microphone()
@@ -56,9 +55,11 @@ memory = deque(maxlen=6)
 
 pygame.mixer.init()
 
-# Elevenlabs
-client = ElevenLabs(api_key=os.getenv("ELEVENLABS_API_KEY"))
-VOICE_ID = "cgSgspJ2msm6clMCkdW9"
+# AI generated comment: เตรียมเสียงพูดของ Rose จาก ElevenLabs โดยให้เปลี่ยน voice ผ่าน .env ได้
+tts_client = ElevenLabs(api_key=os.getenv("ELEVENLABS_API_KEY"))
+VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID", DEFAULT_ELEVENLABS_VOICE_ID)
+
+
 async def speak(text):
     if not text:
         return
@@ -66,11 +67,11 @@ async def speak(text):
     temp = f"tts_{uuid.uuid4().hex}.mp3"
 
     try:
-        # ElevenLabs Python SDK: convert() returns an iterator of audio bytes
-        audio_stream = client.text_to_speech.convert(
+        # AI generated comment: ElevenLabs ส่งเสียงกลับมาเป็นชิ้น ๆ เลยต้องเขียนรวมเป็นไฟล์ก่อนเล่น
+        audio_stream = tts_client.text_to_speech.convert(
             text=text,
             voice_id=VOICE_ID,
-            model_id="eleven_v3",
+            model_id=TTS_MODEL,
         )
 
         with open(temp, "wb") as f:
@@ -102,7 +103,7 @@ def listen():
         r.adjust_for_ambient_noise(s)
         audio = r.listen(s)
     try:
-        return r.recognize_google(audio, language="th-TH")
+        return r.recognize_google(audio, language=SPEECH_LANGUAGE)
     except:
         return None
 
@@ -110,47 +111,79 @@ def listen():
 def build_msgs():
     msgs = []
     for user, ai in memory:
-        msgs.append({"role": "user", "parts": [{"text": user}]})
-        msgs.append({"role": "model", "parts": [{"text": ai}]})
+        msgs.append(
+            types.Content(
+                role="user",
+                parts=[types.Part.from_text(text=user)],
+            )
+        )
+        msgs.append(
+            types.Content(
+                role="model",
+                parts=[types.Part.from_text(text=ai)],
+            )
+        )
     return msgs
 
 
-def do_action(action: str):
-    parts = action.split(":", 2)
+def parse_action(reply: str):
+    match = ACTION_PATTERN.search(reply)
+    if not match:
+        return None
 
-    if len(parts) < 2:
-        return
+    kind = match.group(1)
+    value = match.group(2)
+    return ActionCommand(kind=kind.strip().lower(), value=value.strip())
 
-    kind = parts[0]
-    value = parts[1]
 
-    if kind == "youtube":
-        url = "https://www.youtube.com/results?search_query=" + value
-        webbrowser.open(url)
+def open_url(url: str):
+    opened = webbrowser.open_new_tab(url)
+    if not opened and os.name == "nt":
+        os.startfile(url)
 
-    elif kind == "web":
-        webbrowser.open(value)
 
-    elif kind == "app":
-        subprocess.Popen(value, shell=True)
+def do_action(action: ActionCommand):
+    if not action.value:
+        return "Action failed: missing target."
+
+    if action.kind == "youtube":
+        url = "https://www.youtube.com/results?search_query=" + quote_plus(action.value)
+        open_url(url)
+        return f"Opened YouTube search for: {action.value}"
+
+    if action.kind == "web":
+        open_url(action.value)
+        return f"Opened web page: {action.value}"
+
+    if action.kind == "app":
+        subprocess.Popen(action.value, shell=True)
+        return f"Opened app: {action.value}"
+
+    return f"Action failed: unknown action '{action.kind}'."
 
 
 def ask(text):
     msgs = build_msgs()
-    msgs.append({"role": "user", "parts": [{"text": text}]})
+    msgs.append(
+        types.Content(
+            role="user",
+            parts=[types.Part.from_text(text=text)],
+        )
+    )
 
-    resp = model.generate_content(msgs)
-    reply = resp.text.strip()
+    resp = gemini_client.models.generate_content(
+        model=GEMINI_MODEL,
+        contents=msgs,
+        config=GENERATION_CONFIG,
+    )
+    reply = (resp.text or "").strip()
 
     memory.append((text, reply))
 
-    # -----------------------------
-    # Handle Action command
-    # -----------------------------
-    if reply.startswith("<action:") and reply.endswith(">"):
-        action_content = reply.replace("<action:", "").replace(">", "")
-        do_action(action_content)
-        return None
+    # AI generated comment: ถ้าโมเดลตอบเป็น action tag ให้ทำงานนั้นแทนการพูดข้อความดิบ
+    action = parse_action(reply)
+    if action:
+        return do_action(action)
 
     return reply
 
@@ -180,5 +213,5 @@ if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        # Gracefully handle Ctrl+C without showing a long traceback
+        # AI generated comment: กด Ctrl+C แล้วปิดแบบนุ่ม ๆ ไม่ต้องโชว์ traceback ยาว ๆ
         print("\nกำลังปิดโปรแกรมนะ แล้วเจอกันใหม่นะะะ 😊")
