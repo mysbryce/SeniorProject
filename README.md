@@ -39,3 +39,59 @@ Changes
 
 Files to Modify
     - MainSystem.py: Update system instruction and add generation config
+
+Summary
+    - Package the Python app under src/rose_chat with a root main.py launcher
+    - Replace deprecated google.generativeai usage with google-genai
+    - Add voice-first PyWebView frontend with TalkingHead avatar support
+    - Split frontend code into web/js and web/css modules
+    - Add action handling for YouTube, web URLs, and app launch commands
+    - Add Thai voice/STT/TTS support and Noto Sans Thai font
+    - Configure Python and web formatting/linting tooling
+    - Update .gitignore to exclude local runtime, build, cache, and AI agent files
+    - Add Thai AI generated comment notes across Python and web code
+
+Verification
+    - npm run lint:format:web
+    - npm run lint:web
+    - .venv/Scripts/python.exe -m black src main.py MainSystem.py
+
+วิธีรันโปรเจกต์
+ติดตั้ง dependency ก่อน:
+
+    - python -m venv .venv
+    - .venv/Scripts/python.exe -m pip install -r requirements.txt
+    - npm install
+
+สร้างไฟล์ .env จาก env.example แล้วใส่ API key ที่จำเป็น เช่น GEMINI_API_KEY และ ELEVENLABS_API_KEY
+
+รันแอป:
+
+    - .venv/Scripts/python.exe main.py
+
+หรือถ้าติดตั้ง package แบบ editable แล้ว:
+
+    - .venv/Scripts/python.exe -m rose_chat
+
+## คำสั่ง NPM ทั้งหมด
+
+- npm run format:py
+  จัด format โค้ด Python ด้วย Black
+- npm run lint:py
+  ตรวจว่าโค้ด Python format ถูกต้องตาม Black หรือไม่ โดยไม่แก้ไฟล์
+- npm run format:web
+  จัด format ไฟล์ในโฟลเดอร์ web ด้วย Biome ตาม config เช่น single quote, ไม่มี semicolon, indent 2 spaces
+- npm run lint:format:web
+  ตรวจ format ของไฟล์ใน web ด้วย Biome โดยไม่แก้ไฟล์
+- npm run lint:web
+  ตรวจ lint ฝั่งเว็บด้วย Oxc
+- npm run lint
+  รัน lint ทั้ง Python และ web รวมกัน
+- npm run format
+  จัด format ทั้ง Python และ web รวมกัน
+- npm run build:win
+  build แอปเป็น .exe สำหรับ Windows ด้วย PyInstaller
+- npm run build:pi
+  build แอปสำหรับ Raspberry Pi/Linux ด้วย PyInstaller
+- npm run build:linux
+  alias ของ build:pi
