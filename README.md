@@ -84,12 +84,22 @@ Verification
 
 ## Raspberry Pi 4 (Python 3.12.13) setup
 
-สำหรับ Raspberry Pi OS ให้ติดตั้ง system package ก่อน (จำเป็นสำหรับ `pyaudio`, `pygame`, และ `pywebview`):
+สำหรับ Raspberry Pi OS ให้ติดตั้ง system package ก่อน (จำเป็นสำหรับ `pyaudio`, `pygame`, และ `pywebview[gtk]`):
 
     - sudo apt update
     - sudo apt install -y python3-dev portaudio19-dev libasound2-dev libgtk-3-0 libwebkit2gtk-4.1-0 libsndfile1 mpg123
 
-จากนั้นสร้าง virtualenv ด้วย Python 3.12.13 แล้วติดตั้งตามขั้นตอนด้านบนได้เลย
+จากนั้นสร้าง virtualenv ด้วย Python 3.12.13 แล้วติดตั้งตามขั้นตอนนี้ (แนะนำสำหรับ Pi โดยตรง):
+
+    - python -m pip install --upgrade pip setuptools wheel
+    - python -m pip install -r requirements.pi.txt
+
+`requirements.pi.txt` จะติดตั้ง core package + `pywebview[gtk]` สำหรับ Linux โดยตรง
+
+หรือใช้สคริปต์อัตโนมัติคำสั่งเดียว:
+
+    - chmod +x scripts/setup_pi.sh
+    - ./scripts/setup_pi.sh
 
 ก่อนรันจริง แนะนำให้เช็คความพร้อมของเครื่อง Pi:
 
@@ -130,7 +140,7 @@ Verification
     - sudo apt update
     - sudo apt install -y build-essential pkg-config libffi-dev alsa-utils libasound2-dev libportaudio2 portaudio19-dev mpg123 ffmpeg
     - python -m pip install --upgrade pip
-    - python -m pip install -r requirements.txt
+    - python -m pip install -r requirements.pi.txt
 
 เช็คว่าโหมดเสียงพร้อมใช้งาน:
 

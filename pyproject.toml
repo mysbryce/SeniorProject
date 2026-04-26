@@ -27,7 +27,8 @@ audio = [
   "pygame",
 ]
 gui = [
-  "pywebview",
+  "pywebview; platform_system != 'Linux'",
+  "pywebview[gtk]; platform_system == 'Linux'",
 ]
 
 [tool.setuptools.packages.find]
