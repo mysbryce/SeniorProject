@@ -22,6 +22,8 @@ def asset_root() -> Path:
 
 def main() -> None:
     index_file = asset_root() / "web" / "index.html"
+    if not index_file.exists():
+        raise FileNotFoundError(f"Frontend entry file not found: {index_file}")
 
     # AI generated comment: PyWebView เปิดหน้าเว็บ local แล้วผูก Api ให้ JavaScript เรียก Python ได้
     webview.create_window(

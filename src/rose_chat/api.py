@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import base64
 import subprocess
+import shutil
 import time
 import uuid
 import webbrowser
@@ -195,12 +196,17 @@ class Api:
         return ActionCommand(kind=kind.strip().lower(), value=value.strip())
 
     def _open_url(self, url: str) -> None:
-        # AI generated comment: Windows เปิดซ้ำด้วย os.startfile ได้นิ่งกว่า webbrowser ในบางเครื่อง
+        # AI generated comment: รองรับทั้ง Windows/Linux โดย fallback ไป xdg-open เมื่อจำเป็น
         if os.name == "nt":
             os.startfile(url)
             return
 
-        webbrowser.open_new_tab(url)
+        if webbrowser.open_new_tab(url):
+            return
+
+        opener = shutil.which("xdg-open")
+        if opener:
+            subprocess.Popen([opener, url])
 
     def _ensure_mixer(self) -> None:
         if self._mixer_ready:

@@ -60,18 +60,37 @@ Verification
 ติดตั้ง dependency ก่อน:
 
     - python -m venv .venv
-    - .venv/Scripts/python.exe -m pip install -r requirements.txt
+    - source .venv/bin/activate (Linux/Raspberry Pi) หรือ .venv/Scripts/activate (Windows)
+    - python -m pip install --upgrade pip
+    - python -m pip install -r requirements.txt
     - npm install
 
 สร้างไฟล์ .env จาก env.example แล้วใส่ API key ที่จำเป็น เช่น GEMINI_API_KEY และ ELEVENLABS_API_KEY
 
 รันแอป:
 
-    - .venv/Scripts/python.exe main.py
+    - python main.py
 
 หรือถ้าติดตั้ง package แบบ editable แล้ว:
 
-    - .venv/Scripts/python.exe -m rose_chat
+    - python -m rose_chat
+
+## Raspberry Pi 4 (Python 3.12.13) setup
+
+สำหรับ Raspberry Pi OS ให้ติดตั้ง system package ก่อน (จำเป็นสำหรับ `pyaudio`, `pygame`, และ `pywebview`):
+
+    - sudo apt update
+    - sudo apt install -y python3-dev portaudio19-dev libasound2-dev libsdl2-mixer-2.0-0 libgtk-3-0 libwebkit2gtk-4.1-0
+
+จากนั้นสร้าง virtualenv ด้วย Python 3.12.13 แล้วติดตั้งตามขั้นตอนด้านบนได้เลย
+
+ก่อนรันจริง แนะนำให้เช็คความพร้อมของเครื่อง Pi:
+
+    - npm run check:pi
+
+ถ้าผลเป็น `PASS` ทั้งหมดค่อยรันแอป:
+
+    - python main.py
 
 ## คำสั่ง NPM ทั้งหมด
 

@@ -4,6 +4,7 @@ import asyncio
 import uuid
 import webbrowser
 import subprocess
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import quote_plus
@@ -140,6 +141,10 @@ def open_url(url: str):
     opened = webbrowser.open_new_tab(url)
     if not opened and os.name == "nt":
         os.startfile(url)
+    elif not opened:
+        opener = shutil.which("xdg-open")
+        if opener:
+            subprocess.Popen([opener, url])
 
 
 def do_action(action: ActionCommand):

@@ -3,15 +3,18 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "format:py": ".venv/Scripts/python.exe -m black src main.py MainSystem.py",
-    "lint:py": ".venv/Scripts/python.exe -m black --check src main.py MainSystem.py",
+    "format:py": "python -m black src main.py MainSystem.py",
+    "lint:py": "python -m black --check src main.py MainSystem.py",
     "format:web": "biome format --write web",
     "lint:format:web": "biome check --formatter-enabled=true --linter-enabled=false web",
     "lint:web": "oxlint web",
-    "build:win": ".venv/Scripts/python.exe -m PyInstaller --noconfirm --clean --windowed --name RoseChat --paths src --add-data \"web;web\" main.py",
-    "build:pi": ".venv/bin/python -m PyInstaller --noconfirm --clean --windowed --name rose-chat --paths src --add-data \"web:web\" main.py",
+    "lint": "npm run lint:py && npm run lint:format:web && npm run lint:web",
+    "format": "npm run format:py && npm run format:web",
+    "build:win": "python -m PyInstaller --noconfirm --clean --windowed --name RoseChat --paths src --add-data \"web;web\" main.py",
+    "build:pi": "python -m PyInstaller --noconfirm --clean --windowed --name rose-chat --paths src --add-data \"web:web\" main.py",
     "build:linux": "npm run build:pi",
-    "dev": ".venv/Scripts/python.exe main.py"
+    "check:pi": "python -m rose_chat.doctor",
+    "dev": "python main.py"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.8",
