@@ -63,7 +63,10 @@ Verification
     - source .venv/bin/activate (Linux/Raspberry Pi) หรือ .venv/Scripts/activate (Windows)
     - python -m pip install --upgrade pip
     - python -m pip install -r requirements.txt
-    - npm install
+
+ถ้าต้องการโหมด GUI (PyWebView) ค่อยติดตั้งเพิ่ม:
+
+    - python -m pip install ".[gui]"
 
 ถ้าต้องการเปิดฟีเจอร์เสียง (mic + speaker) เพิ่มเติมค่อยติดตั้ง:
 
@@ -134,6 +137,8 @@ Verification
     - npm run check:pi
 
 ให้ดูส่วน `Voice mode readiness` ต้องมีทั้ง input และ output เป็น `PASS` อย่างน้อยอย่างละ 1 วิธี
+
+หมายเหตุ: ถ้าไม่ได้ติดตั้ง `pywebview` ระบบจะ fallback ไปโหมด Voice CLI อัตโนมัติเมื่อรัน `python main.py`
 
 ## คำสั่ง NPM ทั้งหมด
 

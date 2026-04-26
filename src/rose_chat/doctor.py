@@ -93,9 +93,9 @@ def run_checks() -> int:
         _check_linux_runtime,
         lambda: _check_import("google.genai", "google-genai"),
         lambda: _check_import("elevenlabs", "elevenlabs"),
-        lambda: _check_import("webview", "pywebview"),
     ]
     optional_checks = [
+        lambda: _check_import("webview", "pywebview"),
         lambda: _check_import("pyaudio", "pyaudio"),
         _check_audio_devices,
         _check_pygame_mixer,
