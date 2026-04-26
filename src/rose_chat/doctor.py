@@ -73,32 +73,98 @@ def _check_pygame_mixer() -> tuple[bool, str]:
         return False, f"pygame mixer initialization failed: {exc}"
 
 
+def _check_sounddevice_input() -> tuple[bool, str]:
+    try:
+        import sounddevice as sd
+
+        devices = sd.query_devices()
+        input_devices = [device for device in devices if device.get("max_input_channels", 0) > 0]
+        if not input_devices:
+            return False, "No input device available for sounddevice"
+        return True, f"sounddevice sees {len(input_devices)} input device(s)"
+    except Exception as exc:
+        return False, f"sounddevice input check failed: {exc}"
+
+
+def _check_cli_audio_player() -> tuple[bool, str]:
+    for player in ("mpg123", "ffplay", "aplay"):
+        if shutil.which(player):
+            return True, f"Found CLI audio player: {player}"
+    return False, "No CLI audio player found (install mpg123 or ffmpeg)"
+
+
 def run_checks() -> int:
-    checks = [
+    required_checks = [
         _check_python,
         _check_env_keys,
         _check_linux_runtime,
         lambda: _check_import("google.genai", "google-genai"),
         lambda: _check_import("elevenlabs", "elevenlabs"),
         lambda: _check_import("webview", "pywebview"),
+    ]
+    optional_checks = [
         lambda: _check_import("pyaudio", "pyaudio"),
         _check_audio_devices,
         _check_pygame_mixer,
     ]
 
     failures = 0
+    warnings = 0
     print("Rose Chat Pi diagnostics")
     print("========================")
-    for check in checks:
+    for check in required_checks:
         ok, message = check()
         label = "PASS" if ok else "FAIL"
         print(f"[{label}] {message}")
         if not ok:
             failures += 1
 
+    print("\nOptional voice/audio checks")
+    print("---------------------------")
+    for check in optional_checks:
+        ok, message = check()
+        label = "PASS" if ok else "WARN"
+        print(f"[{label}] {message}")
+        if not ok:
+            warnings += 1
+
     if failures:
         print(f"\nDiagnostics completed with {failures} failure(s).")
         return 1
+
+    if warnings:
+        print(f"\nDiagnostics completed with {warnings} warning(s). App can run without voice/audio.")
+        return 0
+
+    voice_input_ok = False
+    voice_output_ok = False
+    print("\nVoice mode readiness")
+    print("--------------------")
+
+    input_checks = [
+        ("PyAudio+SpeechRecognition", _check_audio_devices),
+        ("sounddevice fallback", _check_sounddevice_input),
+    ]
+    for name, check in input_checks:
+        ok, message = check()
+        label = "PASS" if ok else "WARN"
+        print(f"[{label}] {name}: {message}")
+        voice_input_ok = voice_input_ok or ok
+
+    output_checks = [
+        ("pygame output", _check_pygame_mixer),
+        ("CLI player fallback", _check_cli_audio_player),
+    ]
+    for name, check in output_checks:
+        ok, message = check()
+        label = "PASS" if ok else "WARN"
+        print(f"[{label}] {name}: {message}")
+        voice_output_ok = voice_output_ok or ok
+
+    if voice_input_ok and voice_output_ok:
+        print("\nVoice mode is ready (talk + hear response).")
+    else:
+        print("\nVoice mode is not fully ready yet. Install missing audio tools.")
 
     print("\nDiagnostics completed successfully.")
     return 0

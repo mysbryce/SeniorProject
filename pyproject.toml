@@ -9,8 +9,8 @@ description = "PyWebView desktop AI chat app with room history and voice chat."
 requires-python = ">=3.12"
 dependencies = [
   "SpeechRecognition",
-  "pyaudio",
-  "pygame",
+  "sounddevice",
+  "numpy",
   "google-genai",
   "python-dotenv",
   "elevenlabs",
@@ -24,6 +24,10 @@ rose-chat = "rose_chat.app:main"
 dev = [
   "black",
   "pyinstaller",
+]
+audio = [
+  "pyaudio",
+  "pygame",
 ]
 
 [tool.setuptools.packages.find]

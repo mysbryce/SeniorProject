@@ -65,6 +65,10 @@ Verification
     - python -m pip install -r requirements.txt
     - npm install
 
+ถ้าต้องการเปิดฟีเจอร์เสียง (mic + speaker) เพิ่มเติมค่อยติดตั้ง:
+
+    - python -m pip install ".[audio]"
+
 สร้างไฟล์ .env จาก env.example แล้วใส่ API key ที่จำเป็น เช่น GEMINI_API_KEY และ ELEVENLABS_API_KEY
 
 รันแอป:
@@ -80,7 +84,7 @@ Verification
 สำหรับ Raspberry Pi OS ให้ติดตั้ง system package ก่อน (จำเป็นสำหรับ `pyaudio`, `pygame`, และ `pywebview`):
 
     - sudo apt update
-    - sudo apt install -y python3-dev portaudio19-dev libasound2-dev libsdl2-mixer-2.0-0 libgtk-3-0 libwebkit2gtk-4.1-0
+    - sudo apt install -y python3-dev portaudio19-dev libasound2-dev libgtk-3-0 libwebkit2gtk-4.1-0 libsndfile1 mpg123
 
 จากนั้นสร้าง virtualenv ด้วย Python 3.12.13 แล้วติดตั้งตามขั้นตอนด้านบนได้เลย
 
@@ -110,6 +114,26 @@ Verification
     - python -m pip install pygame pyaudio
 
 หมายเหตุ: ถ้าไม่มี `pygame`/`pyaudio` แอปยังเปิดได้ แต่ฟีเจอร์ไมค์และเล่นเสียงจะไม่พร้อมใช้งาน
+
+### Recommended voice setup on Pi4 (without pyaudio/pygame)
+
+โปรเจกต์นี้รองรับ fallback สำหรับเสียง:
+
+- ไมค์: `sounddevice` + `SpeechRecognition`
+- เล่นเสียงตอบกลับ: `mpg123` (หรือ `ffplay` / `aplay`)
+
+ติดตั้งที่แนะนำ:
+
+    - sudo apt update
+    - sudo apt install -y libportaudio2 portaudio19-dev libsndfile1 mpg123 ffmpeg
+    - python -m pip install --upgrade pip
+    - python -m pip install -r requirements.txt
+
+เช็คว่าโหมดเสียงพร้อมใช้งาน:
+
+    - npm run check:pi
+
+ให้ดูส่วน `Voice mode readiness` ต้องมีทั้ง input และ output เป็น `PASS` อย่างน้อยอย่างละ 1 วิธี
 
 ## คำสั่ง NPM ทั้งหมด
 

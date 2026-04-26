@@ -10,7 +10,6 @@ import webbrowser
 from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import quote_plus
-from typing import Any
 
 from .config import (
     ACTION_PATTERN,
@@ -35,6 +34,16 @@ try:
     import speech_recognition as sr
 except Exception:
     sr = None  # type: ignore[assignment]
+
+try:
+    import sounddevice as sd
+except Exception:
+    sd = None  # type: ignore[assignment]
+
+try:
+    import numpy as np
+except Exception:
+    np = None  # type: ignore[assignment]
 from dotenv import load_dotenv
 from elevenlabs.client import ElevenLabs
 from google import genai
@@ -64,6 +73,7 @@ class Api:
         self.tts_client = ElevenLabs(api_key=os.getenv("ELEVENLABS_API_KEY"))
         self.voice_id = os.getenv("ELEVENLABS_VOICE_ID", DEFAULT_ELEVENLABS_VOICE_ID)
         self._mixer_ready = False
+        self.sample_rate = 16000
 
     def get_rooms(self) -> list[dict[str, object]]:
         return self.rooms.get_rooms()
@@ -86,15 +96,16 @@ class Api:
     def listen_once(self) -> str:
         # AI generated comment: ฟังเสียงหนึ่งรอบแล้วแปลงเป็นข้อความไทยด้วย Google speech recognition
         if sr is None or self.recognizer is None:
-            raise RuntimeError(
-                "Microphone input is unavailable because SpeechRecognition/PyAudio is not installed."
-            )
+            raise RuntimeError("SpeechRecognition is not installed.")
 
-        with sr.Microphone() as source:
-            self.recognizer.adjust_for_ambient_noise(source, duration=0.5)
-            audio = self.recognizer.listen(source, timeout=8, phrase_time_limit=18)
-
-        return self.recognizer.recognize_google(audio, language=SPEECH_LANGUAGE)
+        try:
+            with sr.Microphone() as source:
+                self.recognizer.adjust_for_ambient_noise(source, duration=0.5)
+                audio = self.recognizer.listen(source, timeout=8, phrase_time_limit=18)
+                return self.recognizer.recognize_google(audio, language=SPEECH_LANGUAGE)
+        except Exception:
+            audio = self._record_audio_with_sounddevice(duration_seconds=8)
+            return self.recognizer.recognize_google(audio, language=SPEECH_LANGUAGE)
 
     def speak_text(self, text: str) -> bool:
         speech = text.strip()
@@ -115,10 +126,13 @@ class Api:
                         audio_file.write(chunk)
 
             self._ensure_mixer()
-            pygame.mixer.music.load(str(temp_path))
-            pygame.mixer.music.play()
-            while pygame.mixer.music.get_busy():
-                time.sleep(0.05)
+            if pygame is not None:
+                pygame.mixer.music.load(str(temp_path))
+                pygame.mixer.music.play()
+                while pygame.mixer.music.get_busy():
+                    time.sleep(0.05)
+            else:
+                self._play_audio_file(temp_path)
             return True
         finally:
             try:
@@ -227,10 +241,44 @@ class Api:
             return
 
         if pygame is None:
-            raise RuntimeError("Audio playback is unavailable because pygame is not installed.")
+            self._mixer_ready = True
+            return
 
         pygame.mixer.init()
         self._mixer_ready = True
+
+    def _record_audio_with_sounddevice(self, duration_seconds: int) -> "sr.AudioData":
+        if sd is None or np is None:
+            raise RuntimeError(
+                "Microphone fallback unavailable. Install sounddevice and numpy for Pi voice input."
+            )
+
+        frames = int(self.sample_rate * duration_seconds)
+        recording = sd.rec(
+            frames,
+            samplerate=self.sample_rate,
+            channels=1,
+            dtype="int16",
+        )
+        sd.wait()
+        pcm_bytes = recording.tobytes()
+        return sr.AudioData(pcm_bytes, self.sample_rate, 2)
+
+    def _play_audio_file(self, path: Path) -> None:
+        commands = [
+            ["mpg123", str(path)],
+            ["ffplay", "-nodisp", "-autoexit", "-loglevel", "quiet", str(path)],
+            ["aplay", str(path)],
+        ]
+
+        for command in commands:
+            if shutil.which(command[0]):
+                subprocess.run(command, check=True)
+                return
+
+        raise RuntimeError(
+            "No audio player found for fallback playback. Install mpg123 or ffmpeg on Raspberry Pi."
+        )
 
     def _do_action(self, action: ActionCommand) -> str:
         # AI generated comment: ข้อความที่ return ตรงนี้จะถูกเอาไปพูดเป็นภาษาไทยแทน action tag
