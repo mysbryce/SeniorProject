@@ -125,7 +125,7 @@ Verification
 ติดตั้งที่แนะนำ:
 
     - sudo apt update
-    - sudo apt install -y alsa-utils libasound2-dev libportaudio2 portaudio19-dev mpg123 ffmpeg
+    - sudo apt install -y build-essential pkg-config libffi-dev alsa-utils libasound2-dev libportaudio2 portaudio19-dev mpg123 ffmpeg
     - python -m pip install --upgrade pip
     - python -m pip install -r requirements.txt
 
