@@ -2,4 +2,5 @@ SpeechRecognition
 google-genai
 python-dotenv
 elevenlabs
+pywebview
 -e .
