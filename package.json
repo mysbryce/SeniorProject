@@ -10,14 +10,21 @@
     "lint:web": "oxlint web",
     "lint": "npm run lint:py && npm run lint:format:web && npm run lint:web",
     "format": "npm run format:py && npm run format:web",
+    "tauri": "tauri",
+    "dev": "tauri dev",
+    "build": "tauri build",
     "build:win": "python -m PyInstaller --noconfirm --clean --windowed --name RoseChat --paths src --add-data \"web;web\" main.py",
     "build:pi": "python -m PyInstaller --noconfirm --clean --windowed --name rose-chat --paths src --add-data \"web:web\" main.py",
     "build:linux": "npm run build:pi",
     "check:pi": "python -m rose_chat.doctor",
-    "dev": "python main.py"
+    "dev:pywebview": "python main.py"
   },
   "devDependencies": {
+    "@tauri-apps/cli": "^2.10.1",
     "@biomejs/biome": "^2.3.8",
     "oxlint": "^1.28.0"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.10.1"
   }
 }
