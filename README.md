@@ -92,6 +92,25 @@ Verification
 
     - python main.py
 
+### If `pygame` or `pyaudio` fails to install on Pi
+
+ติดตั้ง system headers ให้ครบก่อน:
+
+    - sudo apt update
+    - sudo apt install -y build-essential python3-dev python3.12-dev portaudio19-dev libasound2-dev libsdl2-dev libsdl2-mixer-dev libsdl2-image-dev libsdl2-ttf-dev libfreetype6-dev libjpeg-dev libpng-dev
+
+แล้วค่อยติดตั้งใน venv:
+
+    - python -m pip install --upgrade pip setuptools wheel
+    - python -m pip install pygame pyaudio
+
+ถ้ายังไม่ผ่าน ให้ติดตั้ง package อื่นก่อน แล้วค่อยติดตั้ง 2 ตัวนี้แยก:
+
+    - python -m pip install -r requirements.txt --no-deps
+    - python -m pip install pygame pyaudio
+
+หมายเหตุ: ถ้าไม่มี `pygame`/`pyaudio` แอปยังเปิดได้ แต่ฟีเจอร์ไมค์และเล่นเสียงจะไม่พร้อมใช้งาน
+
 ## คำสั่ง NPM ทั้งหมด
 
 - npm run format:py

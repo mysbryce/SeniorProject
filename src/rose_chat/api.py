@@ -10,6 +10,7 @@ import webbrowser
 from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import quote_plus
+from typing import Any
 
 from .config import (
     ACTION_PATTERN,
@@ -25,8 +26,15 @@ from .config import (
 
 os.environ.setdefault("PYGAME_HIDE_SUPPORT_PROMPT", PYGAME_HIDE_SUPPORT_PROMPT)
 
-import pygame
-import speech_recognition as sr
+try:
+    import pygame
+except Exception:
+    pygame = None  # type: ignore[assignment]
+
+try:
+    import speech_recognition as sr
+except Exception:
+    sr = None  # type: ignore[assignment]
 from dotenv import load_dotenv
 from elevenlabs.client import ElevenLabs
 from google import genai
@@ -52,7 +60,7 @@ class Api:
             top_p=GEMINI_TOP_P,
         )
         self.rooms = RoomManager()
-        self.recognizer = sr.Recognizer()
+        self.recognizer = sr.Recognizer() if sr is not None else None
         self.tts_client = ElevenLabs(api_key=os.getenv("ELEVENLABS_API_KEY"))
         self.voice_id = os.getenv("ELEVENLABS_VOICE_ID", DEFAULT_ELEVENLABS_VOICE_ID)
         self._mixer_ready = False
@@ -77,6 +85,11 @@ class Api:
 
     def listen_once(self) -> str:
         # AI generated comment: ฟังเสียงหนึ่งรอบแล้วแปลงเป็นข้อความไทยด้วย Google speech recognition
+        if sr is None or self.recognizer is None:
+            raise RuntimeError(
+                "Microphone input is unavailable because SpeechRecognition/PyAudio is not installed."
+            )
+
         with sr.Microphone() as source:
             self.recognizer.adjust_for_ambient_noise(source, duration=0.5)
             audio = self.recognizer.listen(source, timeout=8, phrase_time_limit=18)
@@ -109,9 +122,10 @@ class Api:
             return True
         finally:
             try:
-                pygame.mixer.music.stop()
-                pygame.mixer.music.unload()
-            except pygame.error:
+                if pygame is not None:
+                    pygame.mixer.music.stop()
+                    pygame.mixer.music.unload()
+            except Exception:
                 pass
             if temp_path.exists():
                 try:
@@ -211,6 +225,9 @@ class Api:
     def _ensure_mixer(self) -> None:
         if self._mixer_ready:
             return
+
+        if pygame is None:
+            raise RuntimeError("Audio playback is unavailable because pygame is not installed.")
 
         pygame.mixer.init()
         self._mixer_ready = True
