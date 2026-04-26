@@ -1,6 +1,4 @@
 SpeechRecognition
-sounddevice
-numpy
 google-genai
 python-dotenv
 elevenlabs

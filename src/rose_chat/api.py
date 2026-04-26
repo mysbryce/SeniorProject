@@ -4,6 +4,7 @@ import os
 import base64
 import subprocess
 import shutil
+import tempfile
 import time
 import uuid
 import webbrowser
@@ -34,16 +35,6 @@ try:
     import speech_recognition as sr
 except Exception:
     sr = None  # type: ignore[assignment]
-
-try:
-    import sounddevice as sd
-except Exception:
-    sd = None  # type: ignore[assignment]
-
-try:
-    import numpy as np
-except Exception:
-    np = None  # type: ignore[assignment]
 from dotenv import load_dotenv
 from elevenlabs.client import ElevenLabs
 from google import genai
@@ -104,7 +95,7 @@ class Api:
                 audio = self.recognizer.listen(source, timeout=8, phrase_time_limit=18)
                 return self.recognizer.recognize_google(audio, language=SPEECH_LANGUAGE)
         except Exception:
-            audio = self._record_audio_with_sounddevice(duration_seconds=8)
+            audio = self._record_audio_with_arecord(duration_seconds=8)
             return self.recognizer.recognize_google(audio, language=SPEECH_LANGUAGE)
 
     def speak_text(self, text: str) -> bool:
@@ -247,22 +238,38 @@ class Api:
         pygame.mixer.init()
         self._mixer_ready = True
 
-    def _record_audio_with_sounddevice(self, duration_seconds: int) -> "sr.AudioData":
-        if sd is None or np is None:
-            raise RuntimeError(
-                "Microphone fallback unavailable. Install sounddevice and numpy for Pi voice input."
-            )
+    def _record_audio_with_arecord(self, duration_seconds: int) -> "sr.AudioData":
+        if sr is None:
+            raise RuntimeError("SpeechRecognition is not installed.")
+        if shutil.which("arecord") is None:
+            raise RuntimeError("arecord not found. Install alsa-utils for microphone fallback.")
 
-        frames = int(self.sample_rate * duration_seconds)
-        recording = sd.rec(
-            frames,
-            samplerate=self.sample_rate,
-            channels=1,
-            dtype="int16",
-        )
-        sd.wait()
-        pcm_bytes = recording.tobytes()
-        return sr.AudioData(pcm_bytes, self.sample_rate, 2)
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
+        temp_path = Path(temp_file.name)
+        temp_file.close()
+
+        try:
+            subprocess.run(
+                [
+                    "arecord",
+                    "-q",
+                    "-f",
+                    "S16_LE",
+                    "-r",
+                    str(self.sample_rate),
+                    "-c",
+                    "1",
+                    "-d",
+                    str(duration_seconds),
+                    str(temp_path),
+                ],
+                check=True,
+            )
+            with sr.AudioFile(str(temp_path)) as source:
+                return self.recognizer.record(source)
+        finally:
+            if temp_path.exists():
+                temp_path.unlink(missing_ok=True)
 
     def _play_audio_file(self, path: Path) -> None:
         commands = [

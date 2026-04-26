@@ -119,13 +119,13 @@ Verification
 
 โปรเจกต์นี้รองรับ fallback สำหรับเสียง:
 
-- ไมค์: `sounddevice` + `SpeechRecognition`
+- ไมค์: `arecord` (จาก `alsa-utils`) + `SpeechRecognition`
 - เล่นเสียงตอบกลับ: `mpg123` (หรือ `ffplay` / `aplay`)
 
 ติดตั้งที่แนะนำ:
 
     - sudo apt update
-    - sudo apt install -y libportaudio2 portaudio19-dev libsndfile1 mpg123 ffmpeg
+    - sudo apt install -y alsa-utils libasound2-dev libportaudio2 portaudio19-dev mpg123 ffmpeg
     - python -m pip install --upgrade pip
     - python -m pip install -r requirements.txt
 

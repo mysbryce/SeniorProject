@@ -73,17 +73,10 @@ def _check_pygame_mixer() -> tuple[bool, str]:
         return False, f"pygame mixer initialization failed: {exc}"
 
 
-def _check_sounddevice_input() -> tuple[bool, str]:
-    try:
-        import sounddevice as sd
-
-        devices = sd.query_devices()
-        input_devices = [device for device in devices if device.get("max_input_channels", 0) > 0]
-        if not input_devices:
-            return False, "No input device available for sounddevice"
-        return True, f"sounddevice sees {len(input_devices)} input device(s)"
-    except Exception as exc:
-        return False, f"sounddevice input check failed: {exc}"
+def _check_arecord() -> tuple[bool, str]:
+    if shutil.which("arecord"):
+        return True, "Found arecord (alsa-utils)"
+    return False, "arecord not found (install alsa-utils)"
 
 
 def _check_cli_audio_player() -> tuple[bool, str]:
@@ -132,10 +125,6 @@ def run_checks() -> int:
         print(f"\nDiagnostics completed with {failures} failure(s).")
         return 1
 
-    if warnings:
-        print(f"\nDiagnostics completed with {warnings} warning(s). App can run without voice/audio.")
-        return 0
-
     voice_input_ok = False
     voice_output_ok = False
     print("\nVoice mode readiness")
@@ -143,7 +132,7 @@ def run_checks() -> int:
 
     input_checks = [
         ("PyAudio+SpeechRecognition", _check_audio_devices),
-        ("sounddevice fallback", _check_sounddevice_input),
+        ("arecord fallback", _check_arecord),
     ]
     for name, check in input_checks:
         ok, message = check()
@@ -165,6 +154,10 @@ def run_checks() -> int:
         print("\nVoice mode is ready (talk + hear response).")
     else:
         print("\nVoice mode is not fully ready yet. Install missing audio tools.")
+
+    if warnings:
+        print(f"\nDiagnostics completed with {warnings} warning(s). App can run without voice/audio.")
+        return 0
 
     print("\nDiagnostics completed successfully.")
     return 0

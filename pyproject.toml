@@ -9,8 +9,6 @@ description = "PyWebView desktop AI chat app with room history and voice chat."
 requires-python = ">=3.12"
 dependencies = [
   "SpeechRecognition",
-  "sounddevice",
-  "numpy",
   "google-genai",
   "python-dotenv",
   "elevenlabs",
