@@ -46,6 +46,8 @@ tts_*.mp3
 *.ogg
 
 # Desktop/build artifacts
+src-tauri/gen/
+src-tauri/target/
 *.spec
 *.manifest
 *.app/

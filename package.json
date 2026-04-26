@@ -8,13 +8,20 @@
     "format:web": "biome format --write web",
     "lint:format:web": "biome check --formatter-enabled=true --linter-enabled=false web",
     "lint:web": "oxlint web",
+    "tauri": "tauri",
+    "dev": "tauri dev",
+    "build": "tauri build",
     "build:win": ".venv/Scripts/python.exe -m PyInstaller --noconfirm --clean --windowed --name RoseChat --paths src --add-data \"web;web\" main.py",
     "build:pi": ".venv/bin/python -m PyInstaller --noconfirm --clean --windowed --name rose-chat --paths src --add-data \"web:web\" main.py",
     "build:linux": "npm run build:pi",
-    "dev": ".venv/Scripts/python.exe main.py"
+    "dev:pywebview": ".venv/Scripts/python.exe main.py"
   },
   "devDependencies": {
+    "@tauri-apps/cli": "^2.10.1",
     "@biomejs/biome": "^2.3.8",
     "oxlint": "^1.28.0"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.10.1"
   }
 }
