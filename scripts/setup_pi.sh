@@ -16,7 +16,11 @@ sudo apt update
 
 echo "Installing required system packages..."
 sudo apt install -y \
+  build-essential \
+  pkg-config \
   python3-dev \
+  python3.12-dev \
+  libffi-dev \
   portaudio19-dev \
   libasound2-dev \
   libgtk-3-0 \

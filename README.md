@@ -87,7 +87,7 @@ Verification
 สำหรับ Raspberry Pi OS ให้ติดตั้ง system package ก่อน (จำเป็นสำหรับ `pyaudio`, `pygame`, และ `pywebview[gtk]`):
 
     - sudo apt update
-    - sudo apt install -y python3-dev portaudio19-dev libasound2-dev libgtk-3-0 libwebkit2gtk-4.1-0 libsndfile1 mpg123
+    - sudo apt install -y build-essential pkg-config python3-dev python3.12-dev libffi-dev portaudio19-dev libasound2-dev libgtk-3-0 libwebkit2gtk-4.1-0 libsndfile1 mpg123
 
 จากนั้นสร้าง virtualenv ด้วย Python 3.12.13 แล้วติดตั้งตามขั้นตอนนี้ (แนะนำสำหรับ Pi โดยตรง):
 
