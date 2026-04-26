@@ -3,8 +3,6 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-import webview
-
 from .api import Api
 from .config import APP_TITLE, WINDOW_HEIGHT, WINDOW_MIN_SIZE, WINDOW_WIDTH
 
@@ -21,7 +19,16 @@ def asset_root() -> Path:
 
 
 def main() -> None:
+    try:
+        import webview
+    except Exception as exc:
+        raise RuntimeError(
+            "pywebview is not available. Install optional GUI dependency or use voice CLI mode."
+        ) from exc
+
     index_file = asset_root() / "web" / "index.html"
+    if not index_file.exists():
+        raise FileNotFoundError(f"Frontend entry file not found: {index_file}")
 
     # AI generated comment: PyWebView เปิดหน้าเว็บ local แล้วผูก Api ให้ JavaScript เรียก Python ได้
     webview.create_window(

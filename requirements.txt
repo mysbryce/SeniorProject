@@ -1,8 +1,5 @@
 SpeechRecognition
-pyaudio 
-pygame
 google-genai
 python-dotenv
 elevenlabs
-pywebview
 -e .
