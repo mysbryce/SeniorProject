@@ -9,6 +9,8 @@ from pathlib import Path
 from urllib.parse import quote_plus
 import speech_recognition as sr
 
+import sound_tracker
+
 # AI generated comment: ให้สคริปต์เก่ายังเรียก config กลางจาก src ได้เหมือนแอปใหม่
 sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
@@ -191,6 +193,8 @@ def ask(text):
 async def main():
     print("ready")
 
+    sound_tracker.start()
+
     while True:
         text = listen()
         if not text:
@@ -213,5 +217,7 @@ if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
+
+        sound_tracker.stop()
         # AI generated comment: กด Ctrl+C แล้วปิดแบบนุ่ม ๆ ไม่ต้องโชว์ traceback ยาว ๆ
         print("\nกำลังปิดโปรแกรมนะ แล้วเจอกันใหม่นะะะ 😊")
