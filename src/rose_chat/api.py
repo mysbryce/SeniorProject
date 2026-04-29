@@ -3,6 +3,8 @@ from __future__ import annotations
 import os
 import base64
 import subprocess
+import shutil
+import tempfile
 import time
 import uuid
 import webbrowser
@@ -24,8 +26,15 @@ from .config import (
 
 os.environ.setdefault("PYGAME_HIDE_SUPPORT_PROMPT", PYGAME_HIDE_SUPPORT_PROMPT)
 
-import pygame
-import speech_recognition as sr
+try:
+    import pygame
+except Exception:
+    pygame = None  # type: ignore[assignment]
+
+try:
+    import speech_recognition as sr
+except Exception:
+    sr = None  # type: ignore[assignment]
 from dotenv import load_dotenv
 from elevenlabs.client import ElevenLabs
 from google import genai
@@ -51,10 +60,11 @@ class Api:
             top_p=GEMINI_TOP_P,
         )
         self.rooms = RoomManager()
-        self.recognizer = sr.Recognizer()
+        self.recognizer = sr.Recognizer() if sr is not None else None
         self.tts_client = ElevenLabs(api_key=os.getenv("ELEVENLABS_API_KEY"))
         self.voice_id = os.getenv("ELEVENLABS_VOICE_ID", DEFAULT_ELEVENLABS_VOICE_ID)
         self._mixer_ready = False
+        self.sample_rate = 16000
 
     def get_rooms(self) -> list[dict[str, object]]:
         return self.rooms.get_rooms()
@@ -76,11 +86,17 @@ class Api:
 
     def listen_once(self) -> str:
         # AI generated comment: ฟังเสียงหนึ่งรอบแล้วแปลงเป็นข้อความไทยด้วย Google speech recognition
-        with sr.Microphone() as source:
-            self.recognizer.adjust_for_ambient_noise(source, duration=0.5)
-            audio = self.recognizer.listen(source, timeout=8, phrase_time_limit=18)
+        if sr is None or self.recognizer is None:
+            raise RuntimeError("SpeechRecognition is not installed.")
 
-        return self.recognizer.recognize_google(audio, language=SPEECH_LANGUAGE)
+        try:
+            with sr.Microphone() as source:
+                self.recognizer.adjust_for_ambient_noise(source, duration=0.5)
+                audio = self.recognizer.listen(source, timeout=8, phrase_time_limit=18)
+                return self.recognizer.recognize_google(audio, language=SPEECH_LANGUAGE)
+        except Exception:
+            audio = self._record_audio_with_arecord(duration_seconds=8)
+            return self.recognizer.recognize_google(audio, language=SPEECH_LANGUAGE)
 
     def speak_text(self, text: str) -> bool:
         speech = text.strip()
@@ -101,16 +117,20 @@ class Api:
                         audio_file.write(chunk)
 
             self._ensure_mixer()
-            pygame.mixer.music.load(str(temp_path))
-            pygame.mixer.music.play()
-            while pygame.mixer.music.get_busy():
-                time.sleep(0.05)
+            if pygame is not None:
+                pygame.mixer.music.load(str(temp_path))
+                pygame.mixer.music.play()
+                while pygame.mixer.music.get_busy():
+                    time.sleep(0.05)
+            else:
+                self._play_audio_file(temp_path)
             return True
         finally:
             try:
-                pygame.mixer.music.stop()
-                pygame.mixer.music.unload()
-            except pygame.error:
+                if pygame is not None:
+                    pygame.mixer.music.stop()
+                    pygame.mixer.music.unload()
+            except Exception:
                 pass
             if temp_path.exists():
                 try:
@@ -195,19 +215,77 @@ class Api:
         return ActionCommand(kind=kind.strip().lower(), value=value.strip())
 
     def _open_url(self, url: str) -> None:
-        # AI generated comment: Windows เปิดซ้ำด้วย os.startfile ได้นิ่งกว่า webbrowser ในบางเครื่อง
+        # AI generated comment: รองรับทั้ง Windows/Linux โดย fallback ไป xdg-open เมื่อจำเป็น
         if os.name == "nt":
             os.startfile(url)
             return
 
-        webbrowser.open_new_tab(url)
+        if webbrowser.open_new_tab(url):
+            return
+
+        opener = shutil.which("xdg-open")
+        if opener:
+            subprocess.Popen([opener, url])
 
     def _ensure_mixer(self) -> None:
         if self._mixer_ready:
             return
 
+        if pygame is None:
+            self._mixer_ready = True
+            return
+
         pygame.mixer.init()
         self._mixer_ready = True
+
+    def _record_audio_with_arecord(self, duration_seconds: int) -> "sr.AudioData":
+        if sr is None:
+            raise RuntimeError("SpeechRecognition is not installed.")
+        if shutil.which("arecord") is None:
+            raise RuntimeError("arecord not found. Install alsa-utils for microphone fallback.")
+
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
+        temp_path = Path(temp_file.name)
+        temp_file.close()
+
+        try:
+            subprocess.run(
+                [
+                    "arecord",
+                    "-q",
+                    "-f",
+                    "S16_LE",
+                    "-r",
+                    str(self.sample_rate),
+                    "-c",
+                    "1",
+                    "-d",
+                    str(duration_seconds),
+                    str(temp_path),
+                ],
+                check=True,
+            )
+            with sr.AudioFile(str(temp_path)) as source:
+                return self.recognizer.record(source)
+        finally:
+            if temp_path.exists():
+                temp_path.unlink(missing_ok=True)
+
+    def _play_audio_file(self, path: Path) -> None:
+        commands = [
+            ["mpg123", str(path)],
+            ["ffplay", "-nodisp", "-autoexit", "-loglevel", "quiet", str(path)],
+            ["aplay", str(path)],
+        ]
+
+        for command in commands:
+            if shutil.which(command[0]):
+                subprocess.run(command, check=True)
+                return
+
+        raise RuntimeError(
+            "No audio player found for fallback playback. Install mpg123 or ffmpeg on Raspberry Pi."
+        )
 
     def _do_action(self, action: ActionCommand) -> str:
         # AI generated comment: ข้อความที่ return ตรงนี้จะถูกเอาไปพูดเป็นภาษาไทยแทน action tag
